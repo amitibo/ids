@@ -482,6 +482,56 @@ static int ids_core_Camera_setauto_exposure_brightness(ids_core_Camera *self, Py
     return -1;
 }
 
+static PyObject *ids_core_Camera_getframerate(ids_core_Camera *self, void *closure) {
+    double fps;
+    double newfps;
+    int ret;
+
+    ret = is_SetFrameRate(self->handle, IS_GET_FRAMERATE, &newfps);
+    switch (ret) {
+    case IS_SUCCESS:
+        return PyFloat_FromDouble(newfps);
+        break;
+    default:
+        raise_general_error(self, ret);
+    }
+
+    return NULL;
+}
+
+static int ids_core_Camera_setframerate(ids_core_Camera *self, PyObject *value, void *closure) {
+    int ret;
+    double fps;
+    double newfps;
+    PyObject *exception;
+
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete attribute 'framerate'");
+        return -1;
+    }
+
+    fps = PyFloat_AsDouble(value);
+    exception = PyErr_Occurred();
+    if (exception) {
+        PyErr_SetString(exception, "Framerate must be a number");
+        return -1;
+    }
+
+    ret = is_SetFrameRate(self->handle, fps, &newfps);
+    switch (ret) {
+    case IS_SUCCESS:
+        return 0;
+        break;
+    case IS_INVALID_PARAMETER:
+        PyErr_SetString(PyExc_ValueError, "Framerate out of range");
+        break;
+    default:
+        raise_general_error(self, ret);
+    }
+
+    return -1;
+}
+
 static PyObject *ids_core_Camera_getauto_speed(ids_core_Camera *self, void *closure) {
     double val;
     int ret;
@@ -780,6 +830,7 @@ PyGetSetDef ids_core_Camera_getseters[] = {
         "bit depth.", NULL},
     {"gain", (getter) ids_core_Camera_getgain, (setter) ids_core_Camera_setgain, "Hardware gain (individual RGB gains not yet supported)", NULL},
     {"exposure", (getter) ids_core_Camera_getexposure, (setter) ids_core_Camera_setexposure, "Exposure time", NULL},
+    {"framerate", (getter) ids_core_Camera_getframerate, (setter) ids_core_Camera_setframerate, "Framerate fps", NULL},
     {"auto_exposure", (getter) ids_core_Camera_getauto_exposure, (setter) ids_core_Camera_setauto_exposure, "Auto exposure", NULL},
     {"auto_exposure_brightness", (getter) ids_core_Camera_getauto_exposure_brightness, (setter) ids_core_Camera_setauto_exposure_brightness, "Auto exposure reference brightness (0 to 1)", NULL},
     {"auto_speed", (getter) ids_core_Camera_getauto_speed, (setter) ids_core_Camera_setauto_speed, "Auto speed", NULL},
