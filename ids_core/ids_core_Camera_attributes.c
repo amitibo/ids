@@ -256,11 +256,32 @@ static int ids_core_Camera_setpixelclock(ids_core_Camera *self, PyObject *value,
     return -1;
 }
 
+
+static PyObject *ids_core_Camera_getpixelclockrange(ids_core_Camera *self, void *closure) {
+    UINT nRange[3];
+    int ret;
+
+    ZeroMemory(nRange, sizeof(nRange));
+
+    ret = is_PixelClock(self->handle, IS_PIXELCLOCK_CMD_GET_RANGE, (void*)nRange, sizeof(nRange));
+    switch (ret) {
+    case IS_SUCCESS:
+        return Py_BuildValue("(III)", nRange[0], nRange[1], nRange[2]);
+        break;
+    default:
+        raise_general_error(self, ret);
+    }
+
+    return NULL;
+}
+
+
 static PyObject *ids_core_Camera_getcolor_mode(ids_core_Camera *self, void *closure) {
     int color = is_SetColorMode(self->handle, IS_GET_COLOR_MODE);
 
     return PyLong_FromLong(color);
 }
+
 
 static int ids_core_Camera_setcolor_mode(ids_core_Camera *self, PyObject *value, void *closure) {
     int color;
@@ -822,6 +843,7 @@ PyGetSetDef ids_core_Camera_getseters[] = {
     {"width", (getter) ids_core_Camera_getwidth, (setter) ids_core_Camera_setwidth, "Image width", NULL},
     {"height", (getter) ids_core_Camera_getheight, (setter) ids_core_Camera_setheight, "Image height", NULL},
     {"pixelclock", (getter) ids_core_Camera_getpixelclock, (setter) ids_core_Camera_setpixelclock, "Pixel Clock of camera", NULL},
+    {"pixelclock_range", (getter) ids_core_Camera_getpixelclockrange, NULL, "Return the range (min, max, inc) of the pixelclock of the camera.", NULL},
     {"color_mode", (getter) ids_core_Camera_getcolor_mode, (setter) ids_core_Camera_setcolor_mode,
         "Color mode of images.\n\n"
         "It is recommended to change color mode only when not\n"
