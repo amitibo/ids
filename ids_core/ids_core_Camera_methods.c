@@ -180,7 +180,9 @@ static PyObject *ids_core_Camera_close(ids_core_Camera *self, PyObject *args, Py
 static int get_next_image(ids_core_Camera *self, char **mem, INT *image_id) {
     int ret;
 
+    Py_BEGIN_ALLOW_THREADS
     ret = is_WaitForNextImage(self->handle, IMG_TIMEOUT, mem, image_id); 
+    Py_END_ALLOW_THREADS
 
     switch (ret) {
     case IS_SUCCESS:
