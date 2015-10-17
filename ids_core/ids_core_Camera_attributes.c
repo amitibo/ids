@@ -329,7 +329,7 @@ static int ids_core_Camera_setgain(ids_core_Camera *self, PyObject *value, void 
         return -1;
     }
 
-    ret = is_SetHardwareGain(self->handle, gain, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER, IS_IGNORE_PARAMETER);
+    ret = is_SetHardwareGain(self->handle, gain, 0, 0, 0);
     switch (ret) {
     case IS_SUCCESS:
         return 0;
@@ -387,6 +387,45 @@ static int ids_core_Camera_setexposure(ids_core_Camera *self, PyObject *value, v
         break;
     default:
         raise_general_error(self, ret);
+    }
+
+    return -1;
+}
+
+static PyObject *ids_core_Camera_getgain_boost(ids_core_Camera *self, void *closure) {
+    int ret;
+    
+    ret = is_SetGainBoost(self->handle, IS_GET_GAINBOOST);
+    
+    if (ret == IS_SET_GAINBOOST_ON)
+        Py_RETURN_TRUE;
+
+    Py_RETURN_FALSE;
+}
+
+static int ids_core_Camera_setgain_boost(ids_core_Camera *self, PyObject *value, void *closure) {
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete attribute 'gain_boost'");
+        return -1;
+    }
+
+    if (!PyBool_Check(value)) {
+        PyErr_SetString(PyExc_TypeError, "Gain boost must be a bool.");
+        return -1;
+    }
+
+    int ret;
+    if (value == Py_True) {
+        ret = is_SetGainBoost(self->handle, IS_SET_GAINBOOST_ON);
+    } else {
+        ret = is_SetGainBoost(self->handle, IS_SET_GAINBOOST_OFF);
+    }
+    switch (ret) {
+    case IS_SUCCESS:
+        return 0;
+    default:
+        raise_general_error(self, ret);
+        return -1;
     }
 
     return -1;
@@ -853,6 +892,7 @@ PyGetSetDef ids_core_Camera_getseters[] = {
     {"gain", (getter) ids_core_Camera_getgain, (setter) ids_core_Camera_setgain, "Hardware gain (individual RGB gains not yet supported)", NULL},
     {"exposure", (getter) ids_core_Camera_getexposure, (setter) ids_core_Camera_setexposure, "Exposure time", NULL},
     {"framerate", (getter) ids_core_Camera_getframerate, (setter) ids_core_Camera_setframerate, "Framerate fps", NULL},
+    {"gain_boost", (getter) ids_core_Camera_getgain_boost, (setter) ids_core_Camera_setgain_boost, "Gain boost", NULL},
     {"auto_exposure", (getter) ids_core_Camera_getauto_exposure, (setter) ids_core_Camera_setauto_exposure, "Auto exposure", NULL},
     {"auto_exposure_brightness", (getter) ids_core_Camera_getauto_exposure_brightness, (setter) ids_core_Camera_setauto_exposure_brightness, "Auto exposure reference brightness (0 to 1)", NULL},
     {"auto_speed", (getter) ids_core_Camera_getauto_speed, (setter) ids_core_Camera_setauto_speed, "Auto speed", NULL},
