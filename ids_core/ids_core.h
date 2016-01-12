@@ -2,6 +2,7 @@
 #define IDS_H_INCLUDED
 
 #include <sys/queue.h>
+#include <stdint.h>
 
 /* Module methods */
 extern PyMethodDef ids_coreMethods[];

@@ -33,6 +33,20 @@ Or, for Python 3:
 Of course, if the installation location requires root permissions, `sudo` may
 be necessary.
 
+## Building and installing
+
+Install libpython_. Compilation requires gcc. Below instructions to install using anaconda:
+
+     $ conda install mingw
+     $ python setup.py build --compile=mingw32
+     $ python setup.py install
+     
+.. _libpython: http://www.lfd.uci.edu/~gohlke/pythonlibs/#libpython
+
+.. NOTE:
+   For some unclear reason for time to time (50% percent of the times) I get a DLL error when
+   trying to import the module. My current solution is just to repeat trying.
+   
 ## Usage
 
 The ids module makes it easy to control a camera.  Just initialize the Camera

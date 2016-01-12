@@ -26,25 +26,50 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from distutils.core import setup, Extension
+import numpy as np
+import platform
 
-ids_core = Extension("ids_core",
-                     extra_compile_args = ['-std=gnu99', '-g3'],
-                     library_dirs = ['/usr/local/lib/'],
-                     libraries = ['ueye_api', 'm', 'z'],
-                     sources = [
-                            'ids_core/ids_core.c',
-                            'ids_core/ids_core_methods.c',
-                            'ids_core/ids_core_constants.c',
-                            'ids_core/ids_core_Camera.c',
-                            'ids_core/ids_core_Camera_methods.c',
-                            'ids_core/ids_core_Camera_attributes.c',
-                            'ids_core/ids_core_color.c',
-                     ])
 
-setup(name = 'ids',
-      version = '1.0',
-      description = 'Interface for IDS machine vision cameras',
-      author = 'NC State Aerial Robotics Club',
-      license = 'BSD',
-      py_modules = ['ids'],
-      ext_modules = [ids_core])
+def prepareExtension():
+    
+    include_dirs = [np.get_include()]
+    
+    if platform.system() == 'Windows':
+        include_dirs.extend(['include', r'C:\Program Files\IDS\uEye\Develop\include'])
+        library_dirs = [r'C:\Program Files\IDS\uEye\Develop\Lib']
+        libraries = ['ueye_api_64']
+        extra_compile_args = ['-std=gnu99']
+    else:
+        library_dirs = ['/usr/local/lib/']
+        libraries = ['ueye_api', 'm', 'z']
+        extra_compile_args = ['-std=gnu99', '-g3']
+
+    ids_core = Extension(
+        "ids_core",
+        extra_compile_args=extra_compile_args,
+        include_dirs=include_dirs,
+        library_dirs=library_dirs,
+        libraries=libraries,
+        sources=[
+            'ids_core/ids_core.c',
+            'ids_core/ids_core_methods.c',
+            'ids_core/ids_core_constants.c',
+            'ids_core/ids_core_Camera.c',
+            'ids_core/ids_core_Camera_methods.c',
+            'ids_core/ids_core_Camera_attributes.c',
+            'ids_core/ids_core_color.c',
+        ]
+    )
+        
+    return ids_core
+
+
+setup(
+    name = 'ids',
+    version = '1.0',
+    description = 'Interface for IDS machine vision cameras',
+    author = 'NC State Aerial Robotics Club',
+    license = 'BSD',
+    py_modules = ['ids'],
+    ext_modules = [prepareExtension()]
+)
