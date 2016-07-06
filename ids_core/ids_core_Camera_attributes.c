@@ -191,8 +191,28 @@ static PyObject *ids_core_Camera_getwidth(ids_core_Camera *self, void *closure) 
 }
 
 static int ids_core_Camera_setwidth(ids_core_Camera *self, PyObject *value, void *closure) {
-    PyErr_SetString(PyExc_NotImplementedError, "Changing image width not yet supported.");
-    return -1;
+    int width;
+    PyObject *exception;
+    
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete attribute 'width'");
+        return -1;
+    }
+
+    width = (int) PyLong_AsLong(value);
+    exception = PyErr_Occurred();
+    if (exception) {
+        PyErr_SetString(exception, "Width value must be an int or long");
+        return -1;
+    }
+
+    if (width < 0) {
+        PyErr_SetString(PyExc_ValueError, "Width must be positive.");
+        return -1;
+    }
+
+    self->width = width;
+    return 0;
 }
 
 static PyObject *ids_core_Camera_getheight(ids_core_Camera *self, void *closure) {
@@ -200,8 +220,28 @@ static PyObject *ids_core_Camera_getheight(ids_core_Camera *self, void *closure)
 }
 
 static int ids_core_Camera_setheight(ids_core_Camera *self, PyObject *value, void *closure) {
-    PyErr_SetString(PyExc_NotImplementedError, "Changing image height not yet supported.");
-    return -1;
+    int height;
+    PyObject *exception;
+    
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete attribute 'height'");
+        return -1;
+    }
+
+    height = (int) PyLong_AsLong(value);
+    exception = PyErr_Occurred();
+    if (exception) {
+        PyErr_SetString(exception, "Height value must be an int or long");
+        return -1;
+    }
+
+    if (height < 0) {
+        PyErr_SetString(PyExc_ValueError, "Height must be positive.");
+        return -1;
+    }
+
+    self->height = height;
+    return 0;
 }
 
 static PyObject *ids_core_Camera_getpixelclock(ids_core_Camera *self, void *closure) {
@@ -301,6 +341,44 @@ static int ids_core_Camera_setcolor_mode(ids_core_Camera *self, PyObject *value,
 
     if (!set_color_mode(self, color)) {
         return -1;
+    }
+
+    return 0;
+}
+
+static PyObject *ids_core_Camera_getsubsampling(ids_core_Camera *self, void *closure) {
+    int color = is_SetSubSampling(self->handle, IS_GET_SUBSAMPLING);
+
+    return PyLong_FromLong(color);
+}
+
+
+static int ids_core_Camera_setsubsampling(ids_core_Camera *self, PyObject *value, void *closure) {
+    int subsampling;
+    PyObject *exception;
+
+    if (value == NULL) {
+        PyErr_SetString(PyExc_TypeError, "Cannot delete attribute 'subsampling'");
+        return -1;
+    }
+
+    subsampling = (int) PyLong_AsLong(value);
+    exception = PyErr_Occurred();
+    if (exception) {
+        PyErr_SetString(exception, "SubSampling mode must be an int or long");
+        return -1;
+    }
+
+    int ret = is_SetSubSampling(self->handle, subsampling);
+    switch (ret) {
+        case IS_SUCCESS:
+            break;
+        case IS_INVALID_PARAMETER:
+            PyErr_SetString(PyExc_ValueError, "Unsupported subsampling format.");
+            return -1;
+        default:
+            raise_general_error(self, ret);
+            return -1;
     }
 
     return 0;
@@ -889,6 +967,7 @@ PyGetSetDef ids_core_Camera_getseters[] = {
         "capturing images, and to free and reallocate memory\n"
         "after changing, as the new color mode may have a different\n"
         "bit depth.", NULL},
+    {"subsampling", (getter) ids_core_Camera_getsubsampling, (setter) ids_core_Camera_setsubsampling, "Control subsampling.", NULL},
     {"gain", (getter) ids_core_Camera_getgain, (setter) ids_core_Camera_setgain, "Hardware gain (individual RGB gains not yet supported)", NULL},
     {"exposure", (getter) ids_core_Camera_getexposure, (setter) ids_core_Camera_setexposure, "Exposure time", NULL},
     {"framerate", (getter) ids_core_Camera_getframerate, (setter) ids_core_Camera_setframerate, "Framerate fps", NULL},
