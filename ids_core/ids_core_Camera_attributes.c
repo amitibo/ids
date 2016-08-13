@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2012, 2013, North Carolina State University Aerial Robotics Club
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the North Carolina State University Aerial Robotics Club
  *       nor the names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -193,7 +193,7 @@ static PyObject *ids_core_Camera_getwidth(ids_core_Camera *self, void *closure) 
 static int ids_core_Camera_setwidth(ids_core_Camera *self, PyObject *value, void *closure) {
     int width;
     PyObject *exception;
-    
+
     if (value == NULL) {
         PyErr_SetString(PyExc_TypeError, "Cannot delete attribute 'width'");
         return -1;
@@ -222,7 +222,7 @@ static PyObject *ids_core_Camera_getheight(ids_core_Camera *self, void *closure)
 static int ids_core_Camera_setheight(ids_core_Camera *self, PyObject *value, void *closure) {
     int height;
     PyObject *exception;
-    
+
     if (value == NULL) {
         PyErr_SetString(PyExc_TypeError, "Cannot delete attribute 'height'");
         return -1;
@@ -356,6 +356,7 @@ static PyObject *ids_core_Camera_getsubsampling(ids_core_Camera *self, void *clo
 static int ids_core_Camera_setsubsampling(ids_core_Camera *self, PyObject *value, void *closure) {
     int subsampling;
     PyObject *exception;
+    int ret;
 
     if (value == NULL) {
         PyErr_SetString(PyExc_TypeError, "Cannot delete attribute 'subsampling'");
@@ -369,7 +370,10 @@ static int ids_core_Camera_setsubsampling(ids_core_Camera *self, PyObject *value
         return -1;
     }
 
-    int ret = is_SetSubSampling(self->handle, subsampling);
+    Py_BEGIN_ALLOW_THREADS
+    ret = is_SetSubSampling(self->handle, subsampling);
+    Py_END_ALLOW_THREADS
+
     switch (ret) {
         case IS_SUCCESS:
             break;
@@ -472,9 +476,9 @@ static int ids_core_Camera_setexposure(ids_core_Camera *self, PyObject *value, v
 
 static PyObject *ids_core_Camera_getgain_boost(ids_core_Camera *self, void *closure) {
     int ret;
-    
+
     ret = is_SetGainBoost(self->handle, IS_GET_GAINBOOST);
-    
+
     if (ret == IS_SET_GAINBOOST_ON)
         Py_RETURN_TRUE;
 
@@ -512,7 +516,7 @@ static int ids_core_Camera_setgain_boost(ids_core_Camera *self, PyObject *value,
 static PyObject *ids_core_Camera_getauto_exposure(ids_core_Camera *self, void *closure) {
     double val;
     int ret;
-    
+
     ret = is_SetAutoParameter(self->handle, IS_GET_ENABLE_AUTO_SHUTTER, &val, NULL);
     switch (ret) {
     case IS_SUCCESS:
@@ -521,7 +525,7 @@ static PyObject *ids_core_Camera_getauto_exposure(ids_core_Camera *self, void *c
         raise_general_error(self, ret);
         return NULL;
     }
-        
+
     if (val) {
         Py_INCREF(Py_True);
         return Py_True;
@@ -673,7 +677,7 @@ static int ids_core_Camera_setframerate(ids_core_Camera *self, PyObject *value, 
 static PyObject *ids_core_Camera_getauto_speed(ids_core_Camera *self, void *closure) {
     double val;
     int ret;
-    
+
     ret = is_SetAutoParameter(self->handle, IS_GET_AUTO_SPEED, &val, NULL);
     switch (ret) {
     case IS_SUCCESS:
@@ -682,7 +686,7 @@ static PyObject *ids_core_Camera_getauto_speed(ids_core_Camera *self, void *clos
         PyErr_SetString(PyExc_IOError, "Failed to get auto speed setting.");
         return NULL;
     }
-        
+
     return PyFloat_FromDouble(val);
 }
 
@@ -728,7 +732,7 @@ static PyObject *ids_core_Camera_getauto_white_balance(ids_core_Camera *self, vo
     double val;
     UINT val2;
     int ret;
-    
+
     ret = is_SetAutoParameter(self->handle, IS_GET_ENABLE_AUTO_WHITEBALANCE, &val, NULL);
     switch (ret) {
     case IS_SUCCESS:
@@ -746,7 +750,7 @@ static PyObject *ids_core_Camera_getauto_white_balance(ids_core_Camera *self, vo
         raise_general_error(self, ret);
         return NULL;
     }
-        
+
     if (val && val2) {
         Py_INCREF(Py_True);
         return Py_True;
@@ -829,7 +833,7 @@ err:
 static PyObject *ids_core_Camera_getcolor_correction(ids_core_Camera *self, void *closure) {
     double factor;
     int ret;
-    
+
     ret = is_SetColorCorrection(self->handle, IS_GET_CCOR_MODE, &factor);
     switch (ret) {
     case IS_CCOR_ENABLE_NORMAL:
