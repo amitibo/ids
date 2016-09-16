@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2012, 2013, North Carolina State University Aerial Robotics Club
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the North Carolina State University Aerial Robotics Club
  *       nor the names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -139,6 +139,11 @@ static PyObject *ids_core_Camera_alloc(ids_core_Camera *self, PyObject *args, Py
         goto err_free;
     }
 
+    /* Initialize image queue so we can WaitForNextImage */
+    if (is_InitImageQueue(self->handle, 0) != IS_SUCCESS) {
+        goto err_free;
+    }
+
     Py_INCREF(Py_None);
     return Py_None;
 
@@ -150,6 +155,8 @@ err:
 }
 
 PyObject *ids_core_Camera_free_all(ids_core_Camera *self, PyObject *args, PyObject *kwds) {
+    is_ExitImageQueue(self->handle);
+
     is_ClearSequence(self->handle);
 
     while (!LIST_EMPTY(&self->mem_list)) {
@@ -181,7 +188,7 @@ static int get_next_image(ids_core_Camera *self, unsigned int img_timeout, char 
     int ret;
 
     Py_BEGIN_ALLOW_THREADS
-    ret = is_WaitForNextImage(self->handle, img_timeout, mem, image_id); 
+    ret = is_WaitForNextImage(self->handle, img_timeout, mem, image_id);
     Py_END_ALLOW_THREADS
 
     switch (ret) {
@@ -248,7 +255,7 @@ static PyObject *ids_core_Camera_next_save(ids_core_Camera *self, PyObject *args
     if (!info) {
         return NULL;
     }
-    
+
     ret = is_UnlockSeqBuf(self->handle, image_id, mem);
     switch (ret) {
     case IS_SUCCESS:
@@ -272,7 +279,7 @@ static PyObject *ids_core_Camera_next(ids_core_Camera *self, PyObject *args, PyO
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|I", kwlist, &img_timeout)) {
         return NULL;
     }
- 
+
     ret = get_next_image(self, img_timeout, &mem, &image_id);
     if (ret) {
         /* Exception set, return */
@@ -289,7 +296,7 @@ static PyObject *ids_core_Camera_next(ids_core_Camera *self, PyObject *args, PyO
         Py_DECREF(image);
         return NULL;
     }
-    
+
     ret = is_UnlockSeqBuf(self->handle, image_id, mem);
     switch (ret) {
     case IS_SUCCESS:
@@ -323,7 +330,7 @@ static PyObject *create_matrix(ids_core_Camera *self, char *mem) {
 
         matrix = (PyArrayObject*)PyArray_SimpleNew(2, dims, NPY_UINT8);
         memcpy(PyArray_DATA(matrix), mem, self->bitdepth/8 * dims[0] * dims[1]);
-        break; 
+        break;
     }
     case IS_CM_SENSOR_RAW12: /* You need to left shift the output by 4 bits */
     case IS_CM_SENSOR_RAW16: {
@@ -338,7 +345,7 @@ static PyObject *create_matrix(ids_core_Camera *self, char *mem) {
     case IS_CM_BGRA8_PACKED:
     case IS_CM_BGRY8_PACKED:
     case IS_CM_RGBA8_PACKED:
-    case IS_CM_RGBY8_PACKED: 
+    case IS_CM_RGBY8_PACKED:
     case IS_CM_BGR8_PACKED:
     case IS_CM_RGB8_PACKED: {
         npy_intp dims[3];

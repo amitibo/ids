@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2012, 2013, North Carolina State University Aerial Robotics Club
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *     * Redistributions of source code must retain the above copyright
@@ -12,7 +12,7 @@
  *     * Neither the name of the North Carolina State University Aerial Robotics Club
  *       nor the names of its contributors may be used to endorse or promote products
  *       derived from this software without specific prior written permission.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -91,7 +91,6 @@ static void ids_core_Camera_dealloc(ids_core_Camera *self) {
     /* Use ready flag to determine state of readiness to deallocate */
     switch (self->ready) {
     case READY:
-        is_ExitImageQueue(self->handle);
         ids_core_Camera_free_all(self, NULL, NULL);
     case CONNECTED:
         /* Attempt to close camera */
@@ -186,12 +185,6 @@ static int ids_core_Camera_init(ids_core_Camera *self, PyObject *args, PyObject 
     self->ready = CONNECTED;
 
     if (!set_color_mode(self, self->color)) {
-        return -1;
-    }
-
-    /* Initialize image queue so we can WaitForNextImage */
-    if (is_InitImageQueue(self->handle, 0) != IS_SUCCESS) {
-        PyErr_SetString(PyExc_IOError, "Unable to start image queue.");
         return -1;
     }
 
